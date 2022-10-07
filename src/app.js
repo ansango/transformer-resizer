@@ -10,7 +10,7 @@ import ora from "ora";
 import terminalLink from "terminal-link";
 import gradient from "gradient-string";
 import logSymbols from "log-symbols";
-
+import prompt from "prompt";
 import sharp from "sharp";
 
 const spacer = () => console.log(" ");
@@ -90,7 +90,7 @@ function readFiles(dirname) {
 }
 
 const loader = ({ text }) => ora({ color: "magenta", text, spinner: "flip" });
-
+const link = (text, url) => terminalLink(text, url);
 const XL = {
   width: 2048,
   height: 1365,
@@ -112,15 +112,47 @@ const S = {
 
 const sizes = [XL, L, M, S];
 
+const schema = {
+  properties: {
+    folderName: {
+      message: "Enter the name of the output folder",
+      required: true,
+    },
+  },
+};
+
+const slugify = (string) => {
+  const a = "àáäâèéëêìíïîòóöôùúüûñç·/_,:;";
+  const b = "aaaaeeeeiiiioooouuuunc------";
+  const p = new RegExp(a.split("").join("|"), "g");
+
+  return string
+    .toString()
+    .toLowerCase()
+    .replace(/\s+/g, "-") // Replace spaces with -
+    .replace(p, (c) => b.charAt(a.indexOf(c))) // Replace special characters
+    .replace(/&/g, "-and-") // Replace & with 'and'
+    .replace(/[^\w\-]+/g, "") // Remove all non-word characters
+    .replace(/\-\-+/g, "-") // Replace multiple - with single -
+    .replace(/^-+/, "") // Trim - from start of text
+    .replace(/-+$/, ""); // Trim - from end of text
+};
+
+const getFolder = async () => {
+  prompt.start();
+  return await prompt.get(schema);
+};
+
+const createFolder = (folderName) => {
+  if (!fs.existsSync(folderName)) {
+    fs.mkdirSync(folderName);
+  }
+};
+
 const main = async () => {
   const directory = path.join(process.cwd(), `images`);
-  const resizedDirectory = path.join(process.cwd(), `resized`);
-  if (!fs.existsSync(directory)) {
-    fs.mkdirSync(directory);
-  }
-  if (!fs.existsSync(resizedDirectory)) {
-    fs.mkdirSync(resizedDirectory);
-  }
+  createFolder(directory);
+
   title();
   spacer();
   description();
@@ -129,6 +161,10 @@ const main = async () => {
   spacer();
   warnings();
   spacer();
+
+  const { folderName } = await getFolder();
+  const resizedDirectory = path.join(process.cwd(), slugify(folderName));
+  createFolder(resizedDirectory);
 
   cyanLog(`${logSymbols.info} Let's start! 🚀`);
 
@@ -146,59 +182,50 @@ const main = async () => {
 
     const data = await Promise.all(
       files.map(async (file) => {
-        const { filename, content } = file;
+        const { filename } = file;
         const spinner = loader({ text: `Resizing ${filename}...` }).start();
         const image = await sharp(`${directory}/${filename}`);
         const metadata = await image.metadata();
         const { width, height } = metadata;
         const isLandscape = width > height;
         const isPortrait = height > width;
-        if (isLandscape) {
-          try {
-            await Promise.all(
-              sizes.map(async (size) => {
-                const { width, height } = size;
-                const resizedImage = await image
+
+        try {
+          await Promise.all(
+            sizes.map(async (size) => {
+              const newSizeDirectory = path.join(
+                resizedDirectory,
+                `${size.width}x${size.height}`
+              );
+
+              if (!fs.existsSync(newSizeDirectory)) {
+                fs.mkdirSync(newSizeDirectory);
+              }
+
+              const { width, height } = size;
+              if (isLandscape) {
+                await image
                   .webp({
                     quality: 90,
                   })
                   .resize({ width, height, fit: "cover" })
                   .toFile(
-                    `${resizedDirectory}/${width}x${height}-${
+                    `${newSizeDirectory}/${width}x${height}-${
                       filename.split(".")[0]
                     }.webp`
                   );
-                spinner.stopAndPersist({
-                  symbol: "🙌",
-                  text: `Resized ${filename} to ${width}x${height}!`,
-                });
-              })
-            );
-            return {
-              filename,
-              width,
-              height,
-              isLandscape,
-              isPortrait,
-            };
-          } catch (error) {
-            spinner.fail(`${filename}`);
-            redLog(`${logSymbols.error} ${error}`);
-          }
-        } else if (isPortrait) {
-          await Promise.all(
-            sizes.map(async (size) => {
-              const { width, height } = size;
-              const resizedImage = await image
-                .webp({
-                  quality: 10,
-                })
-                .resize({ width: height, height: width, fit: "cover" })
-                .toFile(
-                  `${resizedDirectory}/${width}x${height}-${
-                    filename.split(".")[0]
-                  }.webp`
-                );
+              } else if (isPortrait) {
+                await image
+                  .webp({
+                    quality: 90,
+                  })
+                  .resize({ width: height, height: width, fit: "cover" })
+                  .toFile(
+                    `${newSizeDirectory}/${width}x${height}-${
+                      filename.split(".")[0]
+                    }.webp`
+                  );
+              }
               spinner.stopAndPersist({
                 symbol: "🙌",
                 text: `Resized ${filename} to ${width}x${height}!`,
@@ -212,6 +239,9 @@ const main = async () => {
             isLandscape,
             isPortrait,
           };
+        } catch (error) {
+          spinner.fail(`${filename}`);
+          redLog(`${logSymbols.error} ${error}`);
         }
       })
     );
@@ -226,6 +256,13 @@ const main = async () => {
     console.table(data);
     greenLog(`${logSymbols.success} All done! 🎉`);
     spacer();
+    spacer();
+    cyanLog(
+      `${logSymbols.info} Have a nice day! 😃 and check out ${link(
+        "my website",
+        pkg.author.url
+      )}!`
+    );
   } catch (error) {
     spinner.fail("Something went wrong!");
     redLog(error);
