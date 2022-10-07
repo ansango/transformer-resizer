@@ -1,13 +1,27 @@
 {
-  "name": "transformer",
+  "name": "resizer",
   "version": "1.0.0",
-  "description": "script runner",
-  "main": "app/src/app.js",
-  "scripts": {
-    "start": "node app/src/app.js",
-    "test": "echo \"Error: no test specified\" && exit 1"
+  "description": "A resize images tool",
+  "main": "src/app.js",
+  "repository": "https://github.com/ansango/transformer-imgs",
+  "author": {
+    "name": "Anibal Santos",
+    "email": "anibalsantosgo@gmail.com",
+    "url": "https://anibalsantosgomez.com"
   },
-  "repository": "https://github.com/ansango/transformer-resizer",
-  "author": "ansango <anibalsantosgo@gmail.com>",
-  "license": "MIT"
+  "license": "MIT",
+  "type": "module",
+  "scripts": {
+    "start": "node src/app.js"
+  },
+  "dependencies": {},
+  "devDependencies": {
+    "chalk": "^5.1.0",
+    "figlet": "^1.5.2",
+    "gradient-string": "^2.0.2",
+    "log-symbols": "^5.1.0",
+    "ora": "^6.1.2",
+    "sharp": "^0.31.1",
+    "terminal-link": "^3.0.0"
+  }
 }
