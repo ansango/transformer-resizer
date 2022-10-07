@@ -181,7 +181,7 @@ const main = async () => {
     cyanLog(`${logSymbols.info} Starting to resize... 📸`);
 
     const data = await Promise.all(
-      files.map(async (file) => {
+      files.map(async (file, indexFile) => {
         const { filename } = file;
         const spinner = loader({ text: `Resizing ${filename}...` }).start();
         const image = await sharp(`${directory}/${filename}`);
@@ -195,7 +195,7 @@ const main = async () => {
             sizes.map(async (size) => {
               const newSizeDirectory = path.join(
                 resizedDirectory,
-                `${size.width}x${size.height}`
+                `${indexFile + 1}`
               );
 
               if (!fs.existsSync(newSizeDirectory)) {
@@ -209,22 +209,14 @@ const main = async () => {
                     quality: 90,
                   })
                   .resize({ width, height, fit: "cover" })
-                  .toFile(
-                    `${newSizeDirectory}/${width}x${height}-${
-                      filename.split(".")[0]
-                    }.webp`
-                  );
+                  .toFile(`${newSizeDirectory}/${width}x${height}.webp`);
               } else if (isPortrait) {
                 await image
                   .webp({
                     quality: 90,
                   })
                   .resize({ width: height, height: width, fit: "cover" })
-                  .toFile(
-                    `${newSizeDirectory}/${width}x${height}-${
-                      filename.split(".")[0]
-                    }.webp`
-                  );
+                  .toFile(`${newSizeDirectory}/${width}x${height}.webp`);
               }
               spinner.stopAndPersist({
                 symbol: "🙌",
