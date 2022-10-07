@@ -225,6 +225,7 @@ const main = async () => {
     spacer();
     console.table(data);
     greenLog(`${logSymbols.success} All done! 🎉`);
+    spacer();
   } catch (error) {
     spinner.fail("Something went wrong!");
     redLog(error);
