@@ -1,0 +1,13 @@
+{
+  "name": "transformer",
+  "version": "1.0.0",
+  "description": "script runner",
+  "main": "app/src/app.js",
+  "scripts": {
+    "start": "node app/src/app.js",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": "https://github.com/ansango/transformer-resizer",
+  "author": "ansango <anibalsantosgo@gmail.com>",
+  "license": "MIT"
+}
