@@ -165,6 +165,9 @@ const main = async () => {
   const { folderName } = await getFolder();
   const resizedDirectory = path.join(process.cwd(), slugify(folderName));
   createFolder(resizedDirectory);
+  const folderReel = `${folderName}-reel`;
+  const reelDirectory = path.join(process.cwd(), slugify(folderReel));
+  createFolder(reelDirectory);
 
   cyanLog(`${logSymbols.info} Let's start! 🚀`);
 
@@ -224,6 +227,8 @@ const main = async () => {
               });
             })
           );
+          spacer();
+
           return {
             filename,
             width,
@@ -237,6 +242,36 @@ const main = async () => {
         }
       })
     );
+    spacer();
+    spinner.stopAndPersist({
+      symbol: "📱",
+      text: `Generating thumbs for Instagram reels...`,
+    });
+
+    const reel = await Promise.all(
+      files.map(async (file, indexFile) => {
+        const { filename } = file;
+        const image = await sharp(`${directory}/${filename}`);
+
+        try {
+          await image
+            .jpeg({ quality: 90 })
+            .resize({ width: 1080, height: 1920, fit: "cover" })
+            .toFile(`${reelDirectory}/${indexFile + 1}.jpg`);
+        } catch (error) {
+          spinner.fail(`${filename}`);
+          redLog(`${logSymbols.error} ${error}`);
+        }
+      })
+    );
+
+    spinner.stopAndPersist({
+      symbol: "🙌",
+      text: `Generated thumbs for Instagram reels!`,
+    });
+
+    spacer();
+
     cyanLog(`${logSymbols.info} Done! 🎉`);
     spacer();
     console.table({
