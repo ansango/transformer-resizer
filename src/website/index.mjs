@@ -56,7 +56,7 @@ export const webSiteProgram = async () => {
             sizes.map(async (size) => {
               const newSizeDirectory = path.join(
                 resizedDirectory,
-                `${indexFile + 1}`
+                `${filename.split(".")[0]}`
               );
 
               createFolder(newSizeDirectory);
