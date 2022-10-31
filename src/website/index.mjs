@@ -50,6 +50,7 @@ export const webSiteProgram = async () => {
         const { width, height } = metadata;
         const isLandscape = width > height;
         const isPortrait = height > width;
+        const isSquare = width === height;
 
         try {
           if (isPortrait) {
@@ -57,12 +58,34 @@ export const webSiteProgram = async () => {
               .webp({
                 quality: 90,
               })
-
+              .resize({
+                width: 1365,
+                height: 2048,
+                fit: "cover",
+              })
               .toFile(`${resizedDirectory}/${filename.split(".")[0]}.webp`);
-          } else {
+          } else if (isLandscape) {
+            await image
+
+              .webp({
+                quality: 90,
+              })
+              .resize({
+                width: 2048,
+                height: 1365,
+                fit: "cover",
+              })
+              .toFile(`${resizedDirectory}/${filename.split(".")[0]}.webp`);
+          } else if (isSquare) {
             await image
               .webp({
                 quality: 90,
+              })
+
+              .resize({
+                width: 2048,
+                height: 2048,
+                fit: "cover",
               })
               .toFile(`${resizedDirectory}/${filename.split(".")[0]}.webp`);
           }
@@ -78,6 +101,7 @@ export const webSiteProgram = async () => {
             height,
             isLandscape,
             isPortrait,
+            isSquare,
           };
         } catch (error) {
           spinner.fail(`${filename}`);
