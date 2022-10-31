@@ -52,37 +52,24 @@ export const webSiteProgram = async () => {
         const isPortrait = height > width;
 
         try {
-          await Promise.all(
-            sizes.map(async (size) => {
-              const newSizeDirectory = path.join(
-                resizedDirectory,
-                `${filename.split(".")[0]}`
-              );
+          if (isPortrait) {
+            await image
+              .webp({
+                quality: 90,
+              })
 
-              createFolder(newSizeDirectory);
-
-              const { width, height } = size;
-              if (isPortrait) {
-                await image
-                  .webp({
-                    quality: 90,
-                  })
-                  .resize({ width: height, height: width, fit: "cover" })
-                  .toFile(`${newSizeDirectory}/${width}x${height}.webp`);
-              } else {
-                await image
-                  .webp({
-                    quality: 90,
-                  })
-                  .resize({ width, height, fit: "cover" })
-                  .toFile(`${newSizeDirectory}/${width}x${height}.webp`);
-              }
-              spinner.stopAndPersist({
-                symbol: "🙌",
-                text: `Resized ${filename} to ${width}x${height}!`,
-              });
-            })
-          );
+              .toFile(`${resizedDirectory}/${filename.split(".")[0]}.webp`);
+          } else {
+            await image
+              .webp({
+                quality: 90,
+              })
+              .toFile(`${resizedDirectory}/${filename.split(".")[0]}.webp`);
+          }
+          spinner.stopAndPersist({
+            symbol: "🙌",
+            text: `Resized ${filename}!`,
+          });
           spacer();
 
           return {
